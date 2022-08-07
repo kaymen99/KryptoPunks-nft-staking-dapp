@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.7;
 
@@ -25,8 +25,8 @@ contract KryptoPunks is ERC721Enumerable, Ownable {
     // CONSTRUCTOR
 
     constructor(
-        uint256 _cost,
         uint256 _maxSupply,
+        uint256 _cost,
         uint256 _maxMintAmountPerTx
     ) ERC721("Krypto Punks Collectible", "KPC") {
         cost = _cost;
