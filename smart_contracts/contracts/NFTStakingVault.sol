@@ -2,17 +2,19 @@
 
 pragma solidity 0.8.7;
 
-import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
-import "./KryptoPunksToken.sol";
+import "./interfaces/IKryptoPunks.sol";
+import "./interfaces/IKryptoPunksToken.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract NFTVault {
+contract NFTStakingVault is Ownable, IERC721Receiver {
     //--------------------------------------------------------------------
     // VARIABLES
 
     uint256 public totalItemsStaked;
 
-    IERC721Enumerable nft;
-    KryptoPunksToken token;
+    IKryptoPunks nft;
+    IKryptoPunksToken token;
 
     struct Stake {
         address owner;
@@ -31,26 +33,30 @@ contract NFTVault {
     //--------------------------------------------------------------------
     // CONSTRUCTOR
 
-    constructor(address _nftAddress, address _token) {
-        nft = IERC721Enumerable(_nftAddress);
-        token = KryptoPunksToken(_token);
+    constructor(address _nftAddress, address _tokenAddress) {
+        nft = IKryptoPunks(_nftAddress);
+        token = IKryptoPunksToken(_tokenAddress);
     }
 
     function stake(uint256[] calldata tokenIds) external {
         uint256 tokenId;
         uint256 stakedCount;
 
-        for (uint256 i; i < tokenIds.length; i++) {
+        for (uint256 i; i < tokenIds.length; ) {
             tokenId = tokenIds[i];
-            require(nft.ownerOf(tokenId) == msg.sender, "Non Item Owner");
             require(vault[tokenId].owner == address(0), "Already Staked");
+            require(nft.ownerOf(tokenId) == msg.sender, "Non Item Owner");
 
             nft.safeTransferFrom(msg.sender, address(this), tokenId);
 
             vault[tokenId] = Stake(msg.sender, block.timestamp);
-            stakedCount++;
 
             emit ItemStaked(tokenId, msg.sender, block.timestamp);
+
+            unchecked {
+                stakedCount++;
+                ++i;
+            }
         }
         totalItemsStaked = totalItemsStaked + stakedCount;
     }
@@ -66,17 +72,20 @@ contract NFTVault {
     function _claim(
         address user,
         uint256[] calldata tokenIds,
-        bool unstake
+        bool unstakeAll
     ) internal {
         uint256 tokenId;
         uint256 rewardEarned;
 
-        for (uint256 i; i < tokenIds.length; i++) {
+        for (uint256 i; i < tokenIds.length; ) {
             tokenId = tokenIds[i];
             require(vault[tokenId].owner == user, "Not Owner");
             uint256 _stakedAt = vault[tokenId].stakedAt;
             rewardEarned += (10 * (block.timestamp - _stakedAt)) / 1 days;
             vault[tokenId].stakedAt = block.timestamp;
+            unchecked {
+                ++i;
+            }
         }
         emit Claimed(user, rewardEarned);
 
@@ -84,7 +93,7 @@ contract NFTVault {
             token.mint(user, rewardEarned);
         }
 
-        if (unstake) {
+        if (unstakeAll) {
             _unstake(user, tokenIds);
         }
     }
@@ -93,20 +102,94 @@ contract NFTVault {
         uint256 tokenId;
         uint256 unstakedCount;
 
-        for (uint256 i; i < tokenIds.length; i++) {
+        for (uint256 i; i < tokenIds.length; ) {
             tokenId = tokenIds[i];
             require(vault[tokenId].owner == user, "Not Owner");
 
             nft.safeTransferFrom(address(this), user, tokenId);
 
             delete vault[tokenId];
-            unstakedCount++;
 
             emit ItemUnstaked(tokenId, user, block.timestamp);
+
+            unchecked {
+                unstakedCount++;
+                ++i;
+            }
         }
         totalItemsStaked = totalItemsStaked - unstakedCount;
     }
 
     //--------------------------------------------------------------------
     // VIEW FUNCTIONS
+
+    function getTotalRewardEarned(address user)
+        external
+        view
+        returns (uint256)
+    {
+        uint256 rewardEarned;
+        uint256[] memory tokens = tokensOfOwner(user);
+        for (uint256 i; i < tokens.length; ) {
+            uint256 _stakedAt = vault[tokens[i]].stakedAt;
+            rewardEarned += 10 * ((block.timestamp - _stakedAt) / 1 days);
+            unchecked {
+                ++i;
+            }
+        }
+        return rewardEarned;
+    }
+
+    function getRewardEarnedPerNft(uint256 _tokenId)
+        external
+        view
+        returns (uint256)
+    {
+        uint256 rewardEarned;
+        uint256 _stakedAt = vault[_tokenId].stakedAt;
+        rewardEarned = (10 * (block.timestamp - _stakedAt)) / 1 days;
+        return rewardEarned;
+    }
+
+    function balanceOf(address user) public view returns (uint256) {
+        uint256 nftStakedbalance;
+        uint256 supply = nft.totalSupply();
+        for (uint256 i = 1; i <= supply; ++i) {
+            if (vault[i].owner == user) {
+                nftStakedbalance += 1;
+            }
+        }
+        return nftStakedbalance;
+    }
+
+    function tokensOfOwner(address user)
+        public
+        view
+        returns (uint256[] memory)
+    {
+        uint256 balance = balanceOf(user);
+        uint256 supply = nft.totalSupply();
+        uint256[] memory tokens = new uint256[](balance);
+
+        uint256 counter;
+        for (uint256 i = 1; i <= supply; ++i) {
+            if (vault[i].owner == user) {
+                tokens[counter] = i;
+                counter++;
+            }
+            if (counter == balance) {
+                return tokens;
+            }
+        }
+        return tokens;
+    }
+
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes calldata
+    ) external pure override returns (bytes4) {
+        return IERC721Receiver.onERC721Received.selector;
+    }
 }
