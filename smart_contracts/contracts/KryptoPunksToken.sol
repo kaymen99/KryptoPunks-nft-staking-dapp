@@ -19,8 +19,6 @@ contract KryptoPunksToken is ERC20, ERC20Burnable, Ownable {
     function burnFrom(address account, uint256 amount) public override {
         if (controllers[msg.sender]) {
             _burn(account, amount);
-        } else {
-            super.burnFrom(account, amount);
         }
     }
 
