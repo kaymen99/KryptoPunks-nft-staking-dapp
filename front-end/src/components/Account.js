@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux"
 import { updateAccountData, disconnect } from "../features/blockchain"
 import { ethers, utils } from "ethers"
-import { Modal } from "react-bootstrap"
-import { Button } from "@mui/material"
 import Web3Modal from "web3modal"
 
 import networks from "../utils/networksMap.json"
@@ -13,16 +10,11 @@ import networks from "../utils/networksMap.json"
 const eth = window.ethereum
 let web3Modal = new Web3Modal()
 
-function Account() {
-    const navigate = useNavigate()
+function Account({ mint }) {
     const dispatch = useDispatch()
     const data = useSelector((state) => state.blockchain.value)
 
     const [injectedProvider, setInjectedProvider] = useState();
-    const [show, setShow] = useState(false);
-
-    const handleClose = () => setShow(false);
-    const handleShow = () => setShow(true);
 
     async function fetchAccountData() {
         if (typeof window.ethereum !== 'undefined') {
@@ -50,16 +42,14 @@ function Account() {
         }
     }
 
-    async function Disconnect() {
-        web3Modal.clearCachedProvider();
-        if (injectedProvider && injectedProvider.provider && typeof injectedProvider.provider.disconnect == "function") {
-            await injectedProvider.provider.disconnect();
-            setInjectedProvider(null)
-        }
-        dispatch(disconnect())
-        setShow(false)
-        navigate("/")
-    }
+    // async function Disconnect() {
+    //     web3Modal.clearCachedProvider();
+    //     if (injectedProvider && injectedProvider.provider && typeof injectedProvider.provider.disconnect == "function") {
+    //         await injectedProvider.provider.disconnect();
+    //         setInjectedProvider(null)
+    //     }
+    //     dispatch(disconnect())
+    // }
 
     useEffect(() => {
         if (eth) {
@@ -79,49 +69,17 @@ function Account() {
         <div>
             {isConnected ? (
                 <>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleShow}
-                    >
-                        {data.account &&
-                            `${data.account.slice(0, 6)}...${data.account.slice(
-                                data.account.length - 4,
-                                data.account.length
-                            )}`}
-                    </Button>
-                    <Modal show={show} onHide={handleClose}>
-                        <Modal.Header closeButton>
-                            <Modal.Title>User</Modal.Title>
-                        </Modal.Header>
-                        <Modal.Body>
-                            <p>Account: {data.account}</p>
-                            <p>Balance: {data.balance && parseFloat(data.balance).toFixed(4)} ETH</p>
-                            <p>Network: {data.network}</p>
-                        </Modal.Body>
-                        <Modal.Footer>
-                            <Button variant="contained" color="error" onClick={Disconnect}>
-                                Disconnect
-                            </Button>
-                        </Modal.Footer>
-                    </Modal>
+                    <button className="btn btn-info mt-3" onClick={mint} src="">
+                        MINT
+                    </button>
                 </>
             ) : (
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={fetchAccountData}
-                >
-                    Connect Wallet
-                </Button>
+                <button className="btn btn-info mt-3" onClick={fetchAccountData} src="">
+                    CONNECT WALLET
+                </button>
             )}
         </div>
     )
 }
 
-export default Account
-
-
-
-
-
+export default Account;
