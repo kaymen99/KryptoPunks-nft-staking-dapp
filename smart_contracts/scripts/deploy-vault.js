@@ -18,6 +18,9 @@ async function main() {
 
   await nftContract.deployed();
 
+  const set_tx = await nftContract.setBaseURI("ipfs/QmdN2LsGe35Skv8HJjjYQqtv2LNs43VS7zxQgcLPwHxYjd/")
+  await set_tx.wait()
+
   // Deploy KryptoPunks ERC20 token contract 
   const TokenContract = await ethers.getContractFactory("KryptoPunksToken");
   const tokenContract = await TokenContract.deploy();
@@ -30,6 +33,9 @@ async function main() {
 
   await stakingVault.deployed();
 
+  const control_tx = await tokenContract.setController(stakingVault.address, true)
+  await control_tx.wait()
+
   console.log("KryptoPunks NFT contract deployed at:\n", nftContract.address);
   console.log("KryptoPunks ERC20 token contract deployed at:\n", tokenContract.address);
   console.log("NFT Staking Vault deployed at:\n", stakingVault.address);
@@ -39,10 +45,12 @@ async function main() {
   if (fs.existsSync("../front-end/src")) {
     fse.copySync("./artifacts/contracts", "../front-end/src/artifacts")
     fs.writeFileSync("../front-end/src/utils/contracts-config.js", `
-  export const contractAddress = "${stakingVault.address}"
-  export const ownerAddress = "${stakingVault.signer.address}"
-  export const networkDeployedTo = "${hre.network.config.chainId}"
-  `)
+      export const stakingContractAddress = "${stakingVault.address}"
+      export const nftContractAddress = "${nftContract.address}"
+      export const tokenContractAddress = "${tokenContract.address}"
+      export const ownerAddress = "${stakingVault.signer.address}"
+      export const networkDeployedTo = "${hre.network.config.chainId}"
+    `)
   }
 
   if (!developmentChains.includes(deployNetwork) && hre.config.etherscan.apiKey[deployNetwork]) {
