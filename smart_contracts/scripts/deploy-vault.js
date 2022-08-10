@@ -18,7 +18,7 @@ async function main() {
 
   await nftContract.deployed();
 
-  const set_tx = await nftContract.setBaseURI("ipfs/QmdN2LsGe35Skv8HJjjYQqtv2LNs43VS7zxQgcLPwHxYjd/")
+  const set_tx = await nftContract.setBaseURI("ipfs/test-uri")
   await set_tx.wait()
 
   // Deploy KryptoPunks ERC20 token contract 
