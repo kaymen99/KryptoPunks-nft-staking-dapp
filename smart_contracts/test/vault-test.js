@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { ethers, waffle } = require("hardhat");
+const { ethers} = require("hardhat");
 const { getAmountInWei, getAmountFromWei } = require('../utils/helper-scripts');
 
 describe("NFTStakingVault.sol", () => {
@@ -105,27 +105,34 @@ describe("NFTStakingVault.sol", () => {
             for (let i = 0; i < tokenIds.length; i++) {
                 await nftContract.connect(user1).approve(stakingVault.address, tokenIds[i])
             }
+
+            var userWallet = Array.from((await stakingVault.tokensOfOwner(user1.address)), x => Number(x))
+            expect(userWallet).to.have.members([]);
+
             await stakingVault.connect(user1).stake(tokenIds)
+
+            expect(await stakingVault.balanceOf(user1.address)).to.equal(2);
+            userWallet = Array.from((await stakingVault.tokensOfOwner(user1.address)), x => Number(x))
+            expect(userWallet).to.have.members(tokenIds);
+
+            expect(await stakingVault.getTotalRewardEarned(user1.address)).to.equal(0);
+            expect(await stakingVault.getRewardEarnedPerNft(tokenIds[0])).to.equal(0);
 
             // skip 5 days
             const waitingPeriod = 5 * 24 * 60 * 60;
             await ethers.provider.send('evm_increaseTime', [waitingPeriod]);
             await ethers.provider.send('evm_mine');
 
-            expect(await stakingVault.getTotalRewardEarned(user1.address)).to.equal(100);
-            expect(await stakingVault.getRewardEarnedPerNft(tokenIds[0])).to.equal(50);
+            expect(await stakingVault.getTotalRewardEarned(user1.address)).to.equal(20);
+            expect(await stakingVault.getRewardEarnedPerNft(tokenIds[0])).to.equal(10);
 
             await stakingVault.connect(user1).claim(tokenIds)
 
             const user1_tokenBalance = await tokenContract.balanceOf(user1.address)
-            expect(await tokenContract.totalSupply()).to.equal(100);
-            expect(Number(user1_tokenBalance)).to.equal(100);
+            expect(await tokenContract.totalSupply()).to.equal(20);
+            expect(Number(user1_tokenBalance)).to.equal(20);
             expect(await stakingVault.getTotalRewardEarned(user1.address)).to.equal(0);
             expect(await stakingVault.getRewardEarnedPerNft(tokenIds[0])).to.equal(0);
-
-            expect(await stakingVault.balanceOf(user1.address)).to.equal(2);
-            const userWallet = Array.from((await stakingVault.tokensOfOwner(user1.address)), x => Number(x))
-            expect(userWallet).to.have.members(tokenIds);
         });
 
         it("should allow user to unstake his tokens", async () => {
@@ -148,8 +155,8 @@ describe("NFTStakingVault.sol", () => {
             await stakingVault.connect(user1).unstake(tokenIds)
 
             const user1_tokenBalance = await tokenContract.balanceOf(user1.address)
-            expect(await tokenContract.totalSupply()).to.equal(100);
-            expect(Number(user1_tokenBalance)).to.equal(100);
+            expect(await tokenContract.totalSupply()).to.equal(20);
+            expect(Number(user1_tokenBalance)).to.equal(20);
 
             expect(await nftContract.balanceOf(stakingVault.address)).to.equal(0);
             expect(await nftContract.balanceOf(user1.address)).to.equal(3);
@@ -262,5 +269,4 @@ describe("NFTStakingVault.sol", () => {
         })
     })
 });
-
 
