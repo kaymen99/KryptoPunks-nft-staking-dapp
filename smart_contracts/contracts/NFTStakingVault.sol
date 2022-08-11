@@ -82,7 +82,9 @@ contract NFTStakingVault is Ownable, IERC721Receiver {
             tokenId = tokenIds[i];
             require(vault[tokenId].owner == user, "Not Owner");
             uint256 _stakedAt = vault[tokenId].stakedAt;
-            calculatedReward += 200 * ((block.timestamp - _stakedAt) / 1 days);
+            calculatedReward +=
+                (500 * (block.timestamp - _stakedAt) * 10**18) /
+                1 days;
             vault[tokenId].stakedAt = block.timestamp;
             unchecked {
                 ++i;
@@ -133,14 +135,14 @@ contract NFTStakingVault is Ownable, IERC721Receiver {
         returns (uint256)
     {
         uint256 calculatedReward;
-        uint256 rewardEarned = 0;
+        uint256 rewardEarned;
         uint256[] memory tokens = tokensOfOwner(user);
         if (tokens.length != 0) {
             for (uint256 i; i < tokens.length; ) {
                 uint256 _stakedAt = vault[tokens[i]].stakedAt;
                 calculatedReward +=
-                    200 *
-                    ((block.timestamp - _stakedAt) / 1 days);
+                    (500 * (block.timestamp - _stakedAt) * 10**18) /
+                    1 days;
                 unchecked {
                     ++i;
                 }
@@ -158,7 +160,9 @@ contract NFTStakingVault is Ownable, IERC721Receiver {
         uint256 calculatedReward;
         uint256 rewardEarned;
         uint256 _stakedAt = vault[_tokenId].stakedAt;
-        calculatedReward = 200 * ((block.timestamp - _stakedAt) / 1 days);
+        calculatedReward =
+            (500 * (block.timestamp - _stakedAt) * 10**18) /
+            1 days;
         rewardEarned = calculatedReward / 100;
         return rewardEarned;
     }
