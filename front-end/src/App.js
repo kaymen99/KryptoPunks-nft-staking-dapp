@@ -1,7 +1,5 @@
-import { Home, MintPage } from './pages'
+import { Home, MintPage, Dashboard } from './pages'
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-
-import 'bootstrap/dist/css/bootstrap.css';
 
 function App() {
 
@@ -11,6 +9,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/mint-page" element={<MintPage />} />
+          <Route path="/owner-dashboard" element={<Dashboard />} />
         </Routes>
       </Router>
     </div>
