@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { ethers} = require("hardhat");
+const { ethers } = require("hardhat");
 const { getAmountInWei, getAmountFromWei } = require('../utils/helper-scripts');
 
 describe("NFTStakingVault.sol", () => {
@@ -123,14 +123,20 @@ describe("NFTStakingVault.sol", () => {
             await ethers.provider.send('evm_increaseTime', [waitingPeriod]);
             await ethers.provider.send('evm_mine');
 
-            expect(await stakingVault.getTotalRewardEarned(user1.address)).to.equal(20);
-            expect(await stakingVault.getRewardEarnedPerNft(tokenIds[0])).to.equal(10);
+            expect(
+                Math.floor(getAmountFromWei(await stakingVault.getTotalRewardEarned(user1.address)))
+            ).to.equal(50);
+            expect(
+                Math.floor(getAmountFromWei(await stakingVault.getRewardEarnedPerNft(tokenIds[0])))
+            ).to.equal(25);
 
             await stakingVault.connect(user1).claim(tokenIds)
 
             const user1_tokenBalance = await tokenContract.balanceOf(user1.address)
-            expect(await tokenContract.totalSupply()).to.equal(20);
-            expect(Number(user1_tokenBalance)).to.equal(20);
+            expect(
+                Math.floor(getAmountFromWei(await tokenContract.totalSupply()))
+            ).to.equal(50);
+            expect(Math.floor(getAmountFromWei(user1_tokenBalance))).to.equal(50);
             expect(await stakingVault.getTotalRewardEarned(user1.address)).to.equal(0);
             expect(await stakingVault.getRewardEarnedPerNft(tokenIds[0])).to.equal(0);
         });
@@ -155,8 +161,10 @@ describe("NFTStakingVault.sol", () => {
             await stakingVault.connect(user1).unstake(tokenIds)
 
             const user1_tokenBalance = await tokenContract.balanceOf(user1.address)
-            expect(await tokenContract.totalSupply()).to.equal(20);
-            expect(Number(user1_tokenBalance)).to.equal(20);
+            expect(
+                Math.floor(getAmountFromWei(await tokenContract.totalSupply()))
+            ).to.equal(50);
+            expect(Math.floor(getAmountFromWei(user1_tokenBalance))).to.equal(50);
 
             expect(await nftContract.balanceOf(stakingVault.address)).to.equal(0);
             expect(await nftContract.balanceOf(user1.address)).to.equal(3);
