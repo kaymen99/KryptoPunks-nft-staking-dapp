@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import "../assets/styles.css";
 import image1 from "../assets/img/mint-punk.png";
 import NavBar from '../components/NavBar';
-import Account from '../components/Account';
 import Footer from '../components/Footer';
 import { useSelector } from "react-redux";
 import { ethers } from "ethers";
@@ -21,6 +20,8 @@ function MintPage() {
     const [mintAmount, setMintAmount] = useState(1)
     const [userNfts, setUserNfts] = useState([])
     const [info, setInfo] = useState({
+        currentSupply: 0,
+        maxSupply: 0,
         maxMintAmountPerTx: 5,
         mintCost: 0,
         paused: true,
@@ -41,34 +42,40 @@ function MintPage() {
 
             const stakedTokens = Array.from((await staking_contract.tokensOfOwner(user)), x => Number(x))
             const reward = await staking_contract.getTotalRewardEarned(user)
-
+            
             const paused = await nft_contract.paused()
             var userTokens = Array.from((await nft_contract.walletOfOwner(user)), x => Number(x))
             const maxMintAmountPerTx = await nft_contract.maxMintAmountPerTx()
             const cost = await nft_contract.cost()
             const baseURI = await nft_contract.baseURI()
             const baseExtension = await nft_contract.baseExtension()
+            const totalSupply = await nft_contract.totalSupply()
+            const maxSupply = await nft_contract.maxSupply()
 
             userTokens = userTokens.concat(stakedTokens).sort()
 
-            const _userNfts = await Promise.all(userTokens.map(async (nft) => {
-                const metadata = await axios.get("https://ipfs.io/" + baseURI + nft.toString() + baseExtension)
-                return {
-                    id: nft,
-                    uri: "https://ipfs.io/ipfs" + metadata.data.image.slice(6, metadata.data.image.length)
-                }
-            }))
-
-            setUserNfts(_userNfts)
-
             setInfo({
+                currentSupply: Number(totalSupply),
+                maxSupply: Number(maxSupply),
                 maxMintAmountPerTx: Number(maxMintAmountPerTx),
                 mintCost: Number(ethers.utils.formatUnits(cost, "ether")),
                 paused: paused,
                 userNftIds: userTokens,
                 stakedNftIds: stakedTokens,
-                totalReward: Number(reward)
+                totalReward: Number(ethers.utils.formatUnits(reward, "ether"))
             })
+
+            const _userNfts = await Promise.all(userTokens.map(async (nft) => {
+                const metadata = await axios.get(
+                    baseURI.replace("ipfs://", "https://ipfs.io/ipfs/") + "/" + nft.toString() + baseExtension
+                )
+                return {
+                    id: nft,
+                    uri: metadata.data.image.replace("ipfs://", "https://ipfs.io/ipfs/")
+                }
+            }))
+
+            setUserNfts(_userNfts)
         }
     }
 
@@ -203,6 +210,14 @@ function MintPage() {
                         <Table responsive>
                             <tbody>
                                 <tr>
+                                    <td className='p-2'>Total Collection Supply</td>
+                                    <td>{info.maxSupply}</td>
+                                </tr>
+                                <tr>
+                                    <td className='p-2'>Minted NFT Count</td>
+                                    <td>{info.currentSupply}</td>
+                                </tr>
+                                <tr>
                                     <td className='p-2'>Mint Cost</td>
                                     <td>{info.mintCost} ETH</td>
                                 </tr>
@@ -237,10 +252,10 @@ function MintPage() {
                         </Table >
                         <div style={{ textAlign: "center" }} >
                             <button className="btn btn-info m-3" src="" onClick={claim}>
-                                Claim
+                                {loading ? <CircularProgress color="inherit" size={18} /> : "Claim"}
                             </button>
                             <button className="btn btn-info m-3" src="" onClick={unstakeAll}>
-                                Unstake All
+                                {loading ? <CircularProgress color="inherit" size={18} /> : "Unstake All"}
                             </button>
                         </div>
                     </div>
@@ -268,7 +283,9 @@ function MintPage() {
                                                 onClick={() => { setMintAmount(mintAmount + 1) }}>+</button>
                                         </div>
                                         <div>
-                                            <Account mint={mint} />
+                                            <button className="btn btn-info mt-3" onClick={mint}>
+                                                {loading ? <CircularProgress color="inherit" size={18} /> : "MINT"}
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -288,10 +305,14 @@ function MintPage() {
                                         <img src={nft.uri} className="item-img" />
                                         <div className='text-center'>
                                             {info.stakedNftIds.includes(nft.id) ? (
-                                                <button className="btn btn-info m-3" role="button" onClick={() => { unstakeItem(nft.id) }}>unstake</button>
+                                                <button className="btn btn-info m-3" role="button" onClick={() => { unstakeItem(nft.id) }}>
+                                                    {loading ? <CircularProgress color="inherit" size={18} /> : "UNSTAKE"}
+                                                </button>
                                             ) : (
                                                 <button className="btn btn-info m-3" role="button"
-                                                    onClick={() => { stakeItem(nft.id) }}>stake</button>
+                                                    onClick={() => { stakeItem(nft.id) }}>
+                                                    {loading ? <CircularProgress color="inherit" size={18} /> : "STAKE"}
+                                                </button>
                                             )}
                                         </div>
                                     </div>
