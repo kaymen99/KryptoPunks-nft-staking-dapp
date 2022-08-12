@@ -9,9 +9,9 @@ function Hero() {
             <NavBar />
             <div className="caption">
                 <div className="caption-inner">
-                    <a href="/mint-page" className="">
-                        <button className="btn btn-warning">
-                            Move to Mint Section
+                    <a href="/mint-page">
+                        <button className="btn btn-danger" style={{ color: "#000" }}>
+                            Mint Now
                         </button>
                     </a>
                     <a href="https://github.com/Aymen1001/NFT-Staking-dapp.git" target="_blank"
