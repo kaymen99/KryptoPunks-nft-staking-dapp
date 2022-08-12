@@ -2,6 +2,8 @@
 
 <!-- ABOUT THE PROJECT -->
 
+# KryptoPunks NFT Staking Dapp
+
 An NFT staking app built on the polygon network.
 
 <p align="center">
