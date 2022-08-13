@@ -40,9 +40,9 @@ describe("NFTStakingVault.sol", () => {
             expect(await nftContract.cost()).to.equal(mintCost);
             expect(await nftContract.maxSupply()).to.equal(maxSupply);
             expect(await nftContract.maxMintAmountPerTx()).to.equal(maxMintAmount);
-            expect(await nftContract.paused()).to.equal(true);
+            expect(await nftContract.paused()).to.equal(1);
 
-            await expect(nftContract.tokenURI(1)).to.be.revertedWith('ERC721Metadata: URI query for nonexistent token');
+            await expect(nftContract.tokenURI(1)).to.be.revertedWithCustomError(nftContract, 'KryptoPunks__QueryForNonExistentToken');
         });
 
         it("ERC20 contract should have correct owner address", async () => {
@@ -60,7 +60,7 @@ describe("NFTStakingVault.sol", () => {
 
     describe("Core Functions", () => {
         beforeEach(async () => {
-            await nftContract.connect(owner).pause(false)
+            await nftContract.connect(owner).pause(2)
 
             await tokenContract.connect(owner).setController(stakingVault.address, true)
         });
@@ -171,6 +171,21 @@ describe("NFTStakingVault.sol", () => {
             expect(await stakingVault.balanceOf(user1.address)).to.equal(0);
         });
 
+        it("should not allow user to mint NFT while contract is paused", async () => {
+            await nftContract.connect(owner).pause(1)
+
+            const mintCost = await nftContract.cost()
+            const totalCost = getAmountFromWei(mintCost) * 3
+
+            await expect(
+                nftContract.connect(user1).mint(
+                    3, { value: getAmountInWei(totalCost) }
+                )
+            ).to.be.revertedWithCustomError(
+                nftContract, "KryptoPunks__ContractIsPaused"
+            )
+        });
+
         it("should not allow not NFT owner to stake his nfts", async () => {
             const mintCost = await nftContract.cost()
             const totalCost = getAmountFromWei(mintCost) * 3
@@ -181,7 +196,7 @@ describe("NFTStakingVault.sol", () => {
                 await nftContract.connect(user1).approve(stakingVault.address, tokenIds[i])
             }
 
-            await expect(stakingVault.connect(user2).stake(tokenIds)).to.be.revertedWith("Non Item Owner")
+            await expect(stakingVault.connect(user2).stake(tokenIds)).to.be.revertedWithCustomError(stakingVault, "NFTStakingVault__NotItemOwner")
         });
 
         it("should not allow user to stake same NFT twice", async () => {
@@ -201,7 +216,7 @@ describe("NFTStakingVault.sol", () => {
             await ethers.provider.send('evm_increaseTime', [waitingPeriod]);
             await ethers.provider.send('evm_mine');
 
-            await expect(stakingVault.connect(user1).stake([1])).to.be.revertedWith("Already Staked")
+            await expect(stakingVault.connect(user1).stake([1])).to.be.revertedWithCustomError(stakingVault, "NFTStakingVault__ItemAlreadyStaked")
         });
 
         it("should not allow not NFT owner to claim staking reward", async () => {
@@ -221,7 +236,7 @@ describe("NFTStakingVault.sol", () => {
             await ethers.provider.send('evm_increaseTime', [waitingPeriod]);
             await ethers.provider.send('evm_mine');
 
-            await expect(stakingVault.connect(user2).claim(tokenIds)).to.be.revertedWith("Not Owner")
+            await expect(stakingVault.connect(user2).claim(tokenIds)).to.be.revertedWithCustomError(stakingVault, "NFTStakingVault__NotItemOwner")
         });
 
         it("should not allow not NFT owner to unstake others NFTs", async () => {
@@ -241,27 +256,32 @@ describe("NFTStakingVault.sol", () => {
             await ethers.provider.send('evm_increaseTime', [waitingPeriod]);
             await ethers.provider.send('evm_mine');
 
-            await expect(stakingVault.connect(user2).unstake(tokenIds)).to.be.revertedWith("Not Owner")
+            await expect(stakingVault.connect(user2).unstake(tokenIds)).to.be.revertedWithCustomError(stakingVault, "NFTStakingVault__NotItemOwner")
+        });
+
+        it("should not allow random users to mint KPT tokens", async () => {
+            const amount = getAmountInWei(100)
+            await expect(
+                tokenContract.connect(randomUser).mint(randomUser.address, amount)
+            ).to.be.revertedWithCustomError(tokenContract, "KryptoPunksToken__OnlyControllersCanMint")
         });
     });
 
     describe('Owner Functions', () => {
         it("only owner should be allowed to change NFT contract parametres & withdraw balance", async () => {
-
             await expect(nftContract.connect(randomUser).setCost(getAmountInWei(0.01))).to.be.revertedWith('Ownable: caller is not the owner');
             await expect(nftContract.connect(randomUser).setMaxMintAmountPerTx(10)).to.be.revertedWith('Ownable: caller is not the owner');
             await expect(nftContract.connect(randomUser).setBaseURI('ipfs://new-Nft-Uri/')).to.be.revertedWith('Ownable: caller is not the owner');
-            await expect(nftContract.connect(randomUser).pause(false)).to.be.revertedWith('Ownable: caller is not the owner');
+            await expect(nftContract.connect(randomUser).pause(2)).to.be.revertedWith('Ownable: caller is not the owner');
             await expect(nftContract.connect(randomUser).withdraw()).to.be.revertedWith('Ownable: caller is not the owner');
         })
 
         it("only owner should be able to change change ERC20 contract controller", async () => {
-
             await expect(tokenContract.connect(randomUser).setController(user1.address, true)).to.be.revertedWith('Ownable: caller is not the owner');
         })
 
         it("owner should be able to withdraw NFT Contract balance", async () => {
-            await nftContract.connect(owner).pause(false)
+            await nftContract.connect(owner).pause(2)
 
             // mint 5 items
             const mintCost = getAmountFromWei(await nftContract.cost())
@@ -273,8 +293,9 @@ describe("NFTStakingVault.sol", () => {
             const ownerFinalBalance = getAmountFromWei(await owner.getBalance())
 
             // withdraw call cost some gas so we to account for it
-            expect(parseFloat(ownerFinalBalance).toFixed(3)).to.be.equal(parseFloat(ownerInitialBalance + mintCost * 2).toFixed(3))
+            expect(parseFloat(ownerFinalBalance).toFixed(2)).to.be.equal(
+                parseFloat(ownerInitialBalance + mintCost * 2).toFixed(2)
+            )
         })
     })
 });
-
