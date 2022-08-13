@@ -19,7 +19,19 @@ contract KryptoPunks is ERC721Enumerable, Ownable {
     uint256 public maxSupply;
     uint256 public maxMintAmountPerTx;
 
-    bool public paused = true;
+    // USE uint256 instead of bool to save gas
+    // paused = 1 & active = 2
+    uint256 public paused = 1;
+
+    //--------------------------------------------------------------------
+    // ERRORS
+
+    error KryptoPunks__ContractIsPaused();
+    error KryptoPunks__NftSupplyLimitExceeded();
+    error KryptoPunks__InvalidMintAmount();
+    error KryptoPunks__MaxMintAmountExceeded();
+    error KryptoPunks__InsufficientFunds();
+    error KryptoPunks__QueryForNonExistentToken();
 
     //--------------------------------------------------------------------
     // CONSTRUCTOR
@@ -38,17 +50,17 @@ contract KryptoPunks is ERC721Enumerable, Ownable {
     // MINT FUNCTIONS
 
     function mint(uint256 _mintAmount) external payable {
-        require(!paused, "the contract is paused");
-        require(_mintAmount != 0, "need to mint at least 1 NFT");
-        require(
-            _mintAmount <= maxMintAmountPerTx,
-            "max mint amount per session exceeded"
-        );
+        if (paused == 1) revert KryptoPunks__ContractIsPaused();
+        if (_mintAmount == 0) revert KryptoPunks__InvalidMintAmount();
+        if (_mintAmount > maxMintAmountPerTx)
+            revert KryptoPunks__MaxMintAmountExceeded();
         uint256 supply = totalSupply();
-        require(supply + _mintAmount <= maxSupply, "max NFT limit exceeded");
+        if (supply + _mintAmount > maxSupply)
+            revert KryptoPunks__NftSupplyLimitExceeded();
 
         if (msg.sender != owner()) {
-            require(msg.value >= cost * _mintAmount, "insufficient funds");
+            if (msg.value < cost * _mintAmount)
+                revert KryptoPunks__InsufficientFunds();
         }
 
         for (uint256 i = 1; i <= _mintAmount; ) {
@@ -78,7 +90,7 @@ contract KryptoPunks is ERC721Enumerable, Ownable {
         baseURI = _newBaseURI;
     }
 
-    function pause(bool _state) external payable onlyOwner {
+    function pause(uint256 _state) external payable onlyOwner {
         paused = _state;
     }
 
@@ -115,10 +127,7 @@ contract KryptoPunks is ERC721Enumerable, Ownable {
         override
         returns (string memory)
     {
-        require(
-            _exists(tokenId),
-            "ERC721Metadata: URI query for nonexistent token"
-        );
+        if (!_exists(tokenId)) revert KryptoPunks__QueryForNonExistentToken();
 
         string memory currentBaseURI = _baseURI();
         return
