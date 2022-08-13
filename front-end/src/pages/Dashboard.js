@@ -15,7 +15,7 @@ const Dashboard = () => {
     const data = useSelector((state) => state.blockchain.value)
     const [appInfo, setAppInfo] = useState({
         nftContractBalance: 0,
-        nftContractPaused: true,
+        nftContractPaused: 1,
         maxMintAmountPerTx: 5,
         mintCost: 0
     })
@@ -38,7 +38,7 @@ const Dashboard = () => {
 
             setAppInfo({
                 nftContractBalance: Number(ethers.utils.formatUnits(balance, "ether")),
-                nftContractPaused: ispaused,
+                nftContractPaused: Number(ispaused),
                 maxMintAmountPerTx: _maxMintAmount,
                 mintCost: Number(ethers.utils.formatUnits(_fee, "ether")),
             })
@@ -108,13 +108,13 @@ const Dashboard = () => {
 
     async function changeContractState() {
         if (data.network === networksMap[networkDeployedTo]) {
-            if (appInfo.nftContractPaused) {
+            if (appInfo.nftContractPaused == 1) {
                 try {
                     setLoading(true)
                     const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
                     const signer = provider.getSigner()
                     const nft_contract = new ethers.Contract(nftContractAddress, nftContract.abi, signer);
-                    const unpause_tx = await nft_contract.pause(false)
+                    const unpause_tx = await nft_contract.pause(2)
                     await unpause_tx.wait();
                     setLoading(false)
                     window.location.reload()
@@ -201,10 +201,11 @@ const Dashboard = () => {
                             </div>
                         </div>
                         <br />
+                        <br />
                         <div className='dashboard-row'>
                             <div className='dashboard-left'>
                                 <label>
-                                    {appInfo.nftContractPaused ? (
+                                    {appInfo.nftContractPaused == 1 ? (
                                         "Nft Contract is paused"
                                     ) : (
                                         "Nft Contract is active"
@@ -213,7 +214,7 @@ const Dashboard = () => {
                             </div>
                             <div className='dashboard-button-up'>
                                 <button className='btn btn-info' onClick={changeContractState}>
-                                    {appInfo.nftContractPaused ? (
+                                    {appInfo.nftContractPaused == 1 ? (
                                         loading ? <CircularProgress color="inherit" size={18} /> : "Activate"
                                     ) : (
                                         loading ? <CircularProgress color="inherit" size={18} /> : "Pause"
