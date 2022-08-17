@@ -155,7 +155,7 @@ const Dashboard = () => {
             <NavBar />
             <br />
             <div className="dashboard-section">
-                <h1 className="minttitle title text-center" style={{ paddingTop: "30px" }}>
+                <h1 className="text-center" style={{ paddingTop: "30px" }}>
                     Owner Dashboard
                 </h1>
                 <div className="dashboard-container">
