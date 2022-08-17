@@ -7,9 +7,8 @@
 This is a modern NFT project, the dapp allows users to mint their KryptoPunks items and stake them to receive staking rewards in the form of KryptoPunkToken (KPT) .
 
 <p align="center">
-  <img alt="Dark" src="https://user-images.githubusercontent.com/83681204/184454644-c104bed8-ca00-435d-98fd-67cb7956b299.png" width="100%">
+  <img alt="Dark" src="https://user-images.githubusercontent.com/83681204/185254772-40163a1d-3481-4519-b936-b5093c71e097.png" width="100%">
 </p>
-
 
 ### Built With
 
