@@ -8,6 +8,7 @@ function Hero() {
         <section className='hero'>
             <NavBar />
             <div className="caption">
+                <p className='text-center' style={{ color: "#fff", fontSize: "20px" }}>Mint, Stake And Earn Rewards With Your KryptoPunks</p>
                 <div className="caption-inner">
                     <a href="/mint-page">
                         <button className="btn btn-danger" style={{ color: "#000" }}>
