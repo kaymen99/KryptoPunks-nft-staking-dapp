@@ -4,7 +4,7 @@
 
 # KryptoPunks NFT Staking Dapp
 
-This is a modern NFT project, the dapp allows users to mint their KryptoPunks items and stake them to receive staking rewards in the form of KryptoPunkToken (KPT) .
+This is a modern NFT project, the dapp allows users to mint their KryptoPunks items and stake them to receive staking rewards in the form of KryptoPunkToken (KPT).
 
 <p align="center">
   <img alt="Dark" src="https://user-images.githubusercontent.com/83681204/185254772-40163a1d-3481-4519-b936-b5093c71e097.png" width="100%">
@@ -81,14 +81,13 @@ The mint page allows user to mint new KryptoPunks and it contains all the inform
 
 ![Capture d’écran 2022-08-17 à 22 48 18](https://user-images.githubusercontent.com/83681204/185249853-36e1c15f-4f26-4aea-a060-604cb56cc52f.png)
 
-On this page the user also finds a list of all the items he owns, which can be directly staked & unstaked from there :
+On this page the user also finds a list of all the items he owns, which can be directly staked & unstaked from there and claim the reward that was accrued :
 
 ![Capture d’écran 2022-08-17 à 22 48 36](https://user-images.githubusercontent.com/83681204/185250186-07ff0242-0c6b-4ff9-9d7a-f9433b85f70f.png)
 
 The dashboard can only be accessed by the nft contract owner from the account window by clicking on the account button in the top of the page, it gives the owner the possibility of withdraw the contract balance, changing nft minting parametres or changing contract state (paused):
 
 ![Capture d’écran 2022-08-17 à 22 49 01](https://user-images.githubusercontent.com/83681204/185250309-9166ae4d-8bbb-422f-99d1-4ed9c41d46a5.png)
-
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
