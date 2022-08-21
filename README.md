@@ -19,7 +19,6 @@ This is a modern NFT project, the dapp allows users to mint their KryptoPunks it
 * [web3modal](https://github.com/Web3Modal/web3modal)
 * [material ui](https://mui.com/getting-started/installation/)
 
-
 <details>
   <summary>Table of Contents</summary>
   <ol>
@@ -60,6 +59,9 @@ The KryptoPunksToken or KPT is the ERC20 token used for distributing staking rew
 The staking vault contract is at the center of this application, it allows users to stake their KryptoPunks items and calculate the KPT rewards accumulated for each item based on the staking period. When a user wants to unstake or claim the accrued rewards from his NFTs, the contract is responsible for minting the KPT tokens to the user by calling the KryptoPunksToken contract.
       </ul>
 
+<b>The architecture of the application</b> is illustrated in the diagram below :
+
+![staking](https://user-images.githubusercontent.com/83681204/185807295-76ab7ea9-3f46-49bb-bf26-c43fa9de7002.png)
 
 ### User interface
    
