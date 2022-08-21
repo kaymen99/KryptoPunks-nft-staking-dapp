@@ -65,7 +65,7 @@ The staking vault contract is at the center of this application, it allows users
 
 ### User interface
    
-The front end is built with React JS, it allows users to mint new KryptoPunks nfts and stake those item in the vault from receiving KPT rewards over time, the app also give a simple admin dashboard for setting minting prices and maximum NFTs minted per tx.
+The front end is built with React JS, it allows users to mint new KryptoPunks nfts and stake them in the vault for receiving KPT rewards over time, the app also give a simple admin dashboard for setting minting prices and maximum NFTs minted per tx.
 
 The front-end is built using the following libraries:
       <ul>
