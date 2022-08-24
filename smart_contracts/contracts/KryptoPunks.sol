@@ -2,11 +2,11 @@
 
 pragma solidity 0.8.7;
 
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "erc721a/contracts/extensions/ERC721AQueryable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract KryptoPunks is ERC721Enumerable, Ownable {
+contract KryptoPunks is ERC721AQueryable, Ownable {
     using Strings for uint256;
 
     //--------------------------------------------------------------------
@@ -40,7 +40,7 @@ contract KryptoPunks is ERC721Enumerable, Ownable {
         uint256 _maxSupply,
         uint256 _cost,
         uint256 _maxMintAmountPerTx
-    ) ERC721("Krypto Punks Collectible", "KPC") {
+    ) ERC721A("Krypto Punks Collectible", "KPC") {
         cost = _cost;
         maxMintAmountPerTx = _maxMintAmountPerTx;
         maxSupply = _maxSupply;
@@ -63,12 +63,7 @@ contract KryptoPunks is ERC721Enumerable, Ownable {
                 revert KryptoPunks__InsufficientFunds();
         }
 
-        for (uint256 i = 1; i <= _mintAmount; ) {
-            _safeMint(msg.sender, supply + i);
-            unchecked {
-                ++i;
-            }
-        }
+        _safeMint(msg.sender, _mintAmount);
     }
 
     //--------------------------------------------------------------------
@@ -103,22 +98,6 @@ contract KryptoPunks is ERC721Enumerable, Ownable {
 
     //--------------------------------------------------------------------
     // VIEW FUNCTIONS
-
-    function walletOfOwner(address _owner)
-        external
-        view
-        returns (uint256[] memory)
-    {
-        uint256 ownerTokenCount = balanceOf(_owner);
-        uint256[] memory tokenIds = new uint256[](ownerTokenCount);
-        for (uint256 i; i < ownerTokenCount; ) {
-            tokenIds[i] = tokenOfOwnerByIndex(_owner, i);
-            unchecked {
-                ++i;
-            }
-        }
-        return tokenIds;
-    }
 
     function tokenURI(uint256 tokenId)
         public
