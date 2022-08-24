@@ -44,7 +44,7 @@ function MintPage() {
             const reward = await staking_contract.getTotalRewardEarned(user)
 
             const paused = await nft_contract.paused()
-            var userTokens = Array.from((await nft_contract.walletOfOwner(user)), x => Number(x))
+            var userTokens = Array.from((await nft_contract.tokensOfOwner(user)), x => Number(x))
             const maxMintAmountPerTx = await nft_contract.maxMintAmountPerTx()
             const cost = await nft_contract.cost()
             const baseURI = await nft_contract.baseURI()
