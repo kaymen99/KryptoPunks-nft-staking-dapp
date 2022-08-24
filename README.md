@@ -52,7 +52,7 @@ This is a modern NFT project, the dapp allows users to mint their KryptoPunks it
 The contracts development and testing is done using the Hardhat framework in the smart_contracts folder, for this project there are 3 main contracts :
       <ul>
        <li><b>KryptoPunks.sol :</b></li>
-This is the NFT collection contract, i used a modified version of openzeppelin's ERC721Enumerable contract, it will allow user to mint items from the collection which are allowed to be staked in the NFT vault.
+This is the NFT collection contract, i used the ERC721A standard because it has lower gas usage for multiple NFT mint in the same transaction, the contract will allow user to mint items from the collection which are allowed to be staked in the NFT vault.
        <li><b>KryptoPunksToken.sol :</b></li>
 The KryptoPunksToken or KPT is the ERC20 token used for distributing staking rewards, it's completly controlled by the stakingVault contract which is the only address allowed to mint new tokens to stakers.
        <li><b>NFTStakingVault.sol :</b></li>
