@@ -12,6 +12,7 @@ contract NFTStakingVault is Ownable, IERC721Receiver {
     // VARIABLES
 
     uint256 public totalItemsStaked;
+    uint256 private constant MONTH = 30 days;
 
     IKryptoPunks nft;
     IKryptoPunksToken token;
@@ -97,9 +98,13 @@ contract NFTStakingVault is Ownable, IERC721Receiver {
                 revert NFTStakingVault__NotItemOwner();
             }
             uint256 _stakedAt = vault[tokenId].stakedAt;
+
+            uint256 stakingPeriod = block.timestamp - _stakedAt;
+            uint256 _dailyReward = _calculateReward(stakingPeriod);
             calculatedReward +=
-                (500 * (block.timestamp - _stakedAt) * 1e18) /
+                (100 * _dailyReward * stakingPeriod * 1e18) /
                 1 days;
+
             vault[tokenId].stakedAt = block.timestamp;
 
             unchecked {
@@ -142,22 +147,48 @@ contract NFTStakingVault is Ownable, IERC721Receiver {
         totalItemsStaked = totalItemsStaked - unstakedCount;
     }
 
+    // calculate the daily staking reward based on the NFT staking period
+    function _calculateReward(uint256 stakingPeriod)
+        internal
+        pure
+        returns (uint256 dailyReward)
+    {
+        if (stakingPeriod <= MONTH) {
+            dailyReward = 1;
+        } else if (stakingPeriod < 3 * MONTH) {
+            dailyReward = 2;
+        } else if (stakingPeriod < 6 * MONTH) {
+            dailyReward = 4;
+        } else if (stakingPeriod >= 6 * MONTH) {
+            dailyReward = 8;
+        }
+    }
+
     //--------------------------------------------------------------------
     // VIEW FUNCTIONS
+
+    function getDailyReward(uint256 stakingPeriod)
+        external
+        pure
+        returns (uint256 dailyReward)
+    {
+        dailyReward = _calculateReward(stakingPeriod);
+    }
 
     function getTotalRewardEarned(address user)
         external
         view
-        returns (uint256)
+        returns (uint256 rewardEarned)
     {
         uint256 calculatedReward;
-        uint256 rewardEarned;
         uint256[] memory tokens = tokensOfOwner(user);
         if (tokens.length != 0) {
             for (uint256 i; i < tokens.length; ) {
                 uint256 _stakedAt = vault[tokens[i]].stakedAt;
+                uint256 stakingPeriod = block.timestamp - _stakedAt;
+                uint256 _dailyReward = _calculateReward(stakingPeriod);
                 calculatedReward +=
-                    (500 * (block.timestamp - _stakedAt) * 1e18) /
+                    (100 * _dailyReward * stakingPeriod * 1e18) /
                     1 days;
                 unchecked {
                     ++i;
@@ -165,45 +196,44 @@ contract NFTStakingVault is Ownable, IERC721Receiver {
             }
             rewardEarned = calculatedReward / 100;
         }
-        return rewardEarned;
     }
 
     function getRewardEarnedPerNft(uint256 _tokenId)
         external
         view
-        returns (uint256)
+        returns (uint256 rewardEarned)
     {
-        uint256 calculatedReward;
-        uint256 rewardEarned;
         uint256 _stakedAt = vault[_tokenId].stakedAt;
-        calculatedReward =
-            (500 * (block.timestamp - _stakedAt) * 1e18) /
+        uint256 stakingPeriod = block.timestamp - _stakedAt;
+        uint256 _dailyReward = _calculateReward(stakingPeriod);
+        uint256 calculatedReward = (100 * _dailyReward * stakingPeriod * 1e18) /
             1 days;
         rewardEarned = calculatedReward / 100;
-        return rewardEarned;
     }
 
-    function balanceOf(address user) public view returns (uint256) {
-        uint256 nftStakedbalance;
+    function balanceOf(address user)
+        public
+        view
+        returns (uint256 nftStakedbalance)
+    {
         uint256 supply = nft.totalSupply();
         unchecked {
-            for (uint256 i = 1; i <= supply; ++i) {
+            for (uint256 i; i <= supply; ++i) {
                 if (vault[i].owner == user) {
                     nftStakedbalance += 1;
                 }
             }
         }
-        return nftStakedbalance;
     }
 
     function tokensOfOwner(address user)
         public
         view
-        returns (uint256[] memory)
+        returns (uint256[] memory tokens)
     {
         uint256 balance = balanceOf(user);
         uint256 supply = nft.totalSupply();
-        uint256[] memory tokens = new uint256[](balance);
+        tokens = new uint256[](balance);
 
         uint256 counter;
 
@@ -212,7 +242,7 @@ contract NFTStakingVault is Ownable, IERC721Receiver {
         }
 
         unchecked {
-            for (uint256 i = 1; i <= supply; ++i) {
+            for (uint256 i; i <= supply; ++i) {
                 if (vault[i].owner == user) {
                     tokens[counter] = i;
                     counter++;
@@ -222,7 +252,6 @@ contract NFTStakingVault is Ownable, IERC721Receiver {
                 }
             }
         }
-        return tokens;
     }
 
     function onERC721Received(
