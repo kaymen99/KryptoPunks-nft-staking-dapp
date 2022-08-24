@@ -9,9 +9,14 @@ function getAmountFromWei(amount) {
     return Number(ethers.utils.formatUnits(amount.toString(), "ether"))
 }
 
+async function moveTime(period) {
+    await ethers.provider.send('evm_increaseTime', [period]);
+    await ethers.provider.send('evm_mine');
+}
 
 module.exports = {
     developmentChains,
     getAmountFromWei,
     getAmountInWei,
+    moveTime
 }
