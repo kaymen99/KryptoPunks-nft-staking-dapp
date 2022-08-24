@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const { getAmountInWei, getAmountFromWei } = require('../utils/helper-scripts');
+const { getAmountInWei, getAmountFromWei, moveTime } = require('../utils/helper-scripts');
 
 describe("NFTStakingVault.sol", () => {
     let owner;
@@ -72,6 +72,9 @@ describe("NFTStakingVault.sol", () => {
 
             expect(await nftContract.totalSupply()).to.equal(3);
             expect(await nftContract.balanceOf(user1.address)).to.equal(3);
+
+            userWallet = Array.from((await nftContract.tokensOfOwner(user1.address)), x => Number(x))
+            expect(userWallet).to.have.members([0, 1, 2]);
         });
 
         it("should allow user to stake its NFTs", async () => {
@@ -79,7 +82,7 @@ describe("NFTStakingVault.sol", () => {
             const totalCost = getAmountFromWei(mintCost) * 3
             await nftContract.connect(user1).mint(3, { value: getAmountInWei(totalCost) })
 
-            const tokenIds = [1, 3]
+            const tokenIds = [0, 2]
             for (let i = 0; i < tokenIds.length; i++) {
                 await nftContract.connect(user1).approve(stakingVault.address, tokenIds[i])
             }
@@ -91,8 +94,11 @@ describe("NFTStakingVault.sol", () => {
             expect(await stakingVault.totalItemsStaked()).to.equal(2);
             expect(await stakingVault.balanceOf(user1.address)).to.equal(2);
 
-            const userWallet = Array.from((await stakingVault.tokensOfOwner(user1.address)), x => Number(x))
-            expect(userWallet).to.have.members(tokenIds);
+            const userNftWallet = Array.from((await nftContract.tokensOfOwner(user1.address)), x => Number(x))
+            expect(userNftWallet).to.have.members([1]);
+
+            const userStakingWallet = Array.from((await stakingVault.tokensOfOwner(user1.address)), x => Number(x))
+            expect(userStakingWallet).to.have.members(tokenIds);
         });
 
         it("should allow user to claim reward earned from staking", async () => {
@@ -100,7 +106,7 @@ describe("NFTStakingVault.sol", () => {
             const totalCost = getAmountFromWei(mintCost) * 3
             await nftContract.connect(user1).mint(3, { value: getAmountInWei(totalCost) })
 
-            const tokenIds = [1, 3]
+            const tokenIds = [0, 2]
 
             for (let i = 0; i < tokenIds.length; i++) {
                 await nftContract.connect(user1).approve(stakingVault.address, tokenIds[i])
@@ -118,25 +124,31 @@ describe("NFTStakingVault.sol", () => {
             expect(await stakingVault.getTotalRewardEarned(user1.address)).to.equal(0);
             expect(await stakingVault.getRewardEarnedPerNft(tokenIds[0])).to.equal(0);
 
-            // skip 5 days
-            const waitingPeriod = 5 * 24 * 60 * 60;
-            await ethers.provider.send('evm_increaseTime', [waitingPeriod]);
-            await ethers.provider.send('evm_mine');
+            // skip 15 days
+            let waitingPeriod = 15 * 24 * 60 * 60;
+            moveTime(waitingPeriod)
 
-            expect(
-                Math.floor(getAmountFromWei(await stakingVault.getTotalRewardEarned(user1.address)))
-            ).to.equal(50);
+            // After 15 days => daily reward = 1 tokens/day
             expect(
                 Math.floor(getAmountFromWei(await stakingVault.getRewardEarnedPerNft(tokenIds[0])))
-            ).to.equal(25);
+            ).to.equal(15);
+
+            // skip 45 days
+            waitingPeriod = 45 * 24 * 60 * 60;
+            moveTime(waitingPeriod)
+
+            // After 60 days = 2 months => daily reward = 2 tokens/day
+            expect(
+                Math.floor(getAmountFromWei(await stakingVault.getTotalRewardEarned(user1.address)))
+            ).to.equal(240);
 
             await stakingVault.connect(user1).claim(tokenIds)
 
             const user1_tokenBalance = await tokenContract.balanceOf(user1.address)
             expect(
                 Math.floor(getAmountFromWei(await tokenContract.totalSupply()))
-            ).to.equal(50);
-            expect(Math.floor(getAmountFromWei(user1_tokenBalance))).to.equal(50);
+            ).to.equal(240);
+            expect(Math.floor(getAmountFromWei(user1_tokenBalance))).to.equal(240);
             expect(await stakingVault.getTotalRewardEarned(user1.address)).to.equal(0);
             expect(await stakingVault.getRewardEarnedPerNft(tokenIds[0])).to.equal(0);
         });
@@ -146,29 +158,44 @@ describe("NFTStakingVault.sol", () => {
             const totalCost = getAmountFromWei(mintCost) * 3
             await nftContract.connect(user1).mint(3, { value: getAmountInWei(totalCost) })
 
-            const tokenIds = [1, 3]
+            const tokenIds = [0, 2]
 
             for (let i = 0; i < tokenIds.length; i++) {
                 await nftContract.connect(user1).approve(stakingVault.address, tokenIds[i])
             }
             await stakingVault.connect(user1).stake(tokenIds)
 
-            // skip 5 days
-            const waitingPeriod = 5 * 24 * 60 * 60;
-            await ethers.provider.send('evm_increaseTime', [waitingPeriod]);
-            await ethers.provider.send('evm_mine');
+            // skip 120 days = 4 months
+            const waitingPeriod = 120 * 24 * 60 * 60;
+            moveTime(waitingPeriod)
 
             await stakingVault.connect(user1).unstake(tokenIds)
 
             const user1_tokenBalance = await tokenContract.balanceOf(user1.address)
             expect(
                 Math.floor(getAmountFromWei(await tokenContract.totalSupply()))
-            ).to.equal(50);
-            expect(Math.floor(getAmountFromWei(user1_tokenBalance))).to.equal(50);
+            ).to.equal(960);
+            expect(Math.floor(getAmountFromWei(user1_tokenBalance))).to.equal(960);
 
+            expect(await stakingVault.balanceOf(user1.address)).to.equal(0);
             expect(await nftContract.balanceOf(stakingVault.address)).to.equal(0);
             expect(await nftContract.balanceOf(user1.address)).to.equal(3);
-            expect(await stakingVault.balanceOf(user1.address)).to.equal(0);
+
+            const userNftWallet = Array.from((await nftContract.tokensOfOwner(user1.address)), x => Number(x))
+            expect(userNftWallet).to.have.members([0, 1, 2]);
+
+        });
+
+        it("should calculate correct daily reward based on staking period", async () => {
+            const lessThanOneMonthPeriod = 20 * 24 * 60 * 60;
+            const lessThanThreeMonthPeriod = 80 * 24 * 60 * 60;
+            const lessThanSixMonthPeriod = 150 * 24 * 60 * 60;
+            const moreThanSixMonthPeriod = 210 * 24 * 60 * 60;
+
+            expect(await stakingVault.getDailyReward(lessThanOneMonthPeriod)).to.equal(1);
+            expect(await stakingVault.getDailyReward(lessThanThreeMonthPeriod)).to.equal(2);
+            expect(await stakingVault.getDailyReward(lessThanSixMonthPeriod)).to.equal(4);
+            expect(await stakingVault.getDailyReward(moreThanSixMonthPeriod)).to.equal(8);
         });
 
         it("should not allow user to mint NFT while contract is paused", async () => {
@@ -191,7 +218,7 @@ describe("NFTStakingVault.sol", () => {
             const totalCost = getAmountFromWei(mintCost) * 3
             await nftContract.connect(user1).mint(3, { value: getAmountInWei(totalCost) })
 
-            const tokenIds = [1, 3]
+            const tokenIds = [0, 2]
             for (let i = 0; i < tokenIds.length; i++) {
                 await nftContract.connect(user1).approve(stakingVault.address, tokenIds[i])
             }
@@ -204,19 +231,18 @@ describe("NFTStakingVault.sol", () => {
             const totalCost = getAmountFromWei(mintCost) * 3
             await nftContract.connect(user1).mint(3, { value: getAmountInWei(totalCost) })
 
-            const tokenIds = [1, 3]
+            const tokenIds = [0, 2]
             for (let i = 0; i < tokenIds.length; i++) {
                 await nftContract.connect(user1).approve(stakingVault.address, tokenIds[i])
             }
 
             await stakingVault.connect(user1).stake(tokenIds)
 
-            // skip 7 days
-            const waitingPeriod = 7 * 24 * 60 * 60;
-            await ethers.provider.send('evm_increaseTime', [waitingPeriod]);
-            await ethers.provider.send('evm_mine');
+            // skip 30 days
+            const waitingPeriod = 30 * 24 * 60 * 60;
+            moveTime(waitingPeriod)
 
-            await expect(stakingVault.connect(user1).stake([1])).to.be.revertedWithCustomError(stakingVault, "NFTStakingVault__ItemAlreadyStaked")
+            await expect(stakingVault.connect(user1).stake([0])).to.be.revertedWithCustomError(stakingVault, "NFTStakingVault__ItemAlreadyStaked")
         });
 
         it("should not allow not NFT owner to claim staking reward", async () => {
@@ -224,17 +250,16 @@ describe("NFTStakingVault.sol", () => {
             const totalCost = getAmountFromWei(mintCost) * 3
             await nftContract.connect(user1).mint(3, { value: getAmountInWei(totalCost) })
 
-            const tokenIds = [1, 3]
+            const tokenIds = [0, 2]
             for (let i = 0; i < tokenIds.length; i++) {
                 await nftContract.connect(user1).approve(stakingVault.address, tokenIds[i])
             }
 
             await stakingVault.connect(user1).stake(tokenIds)
 
-            // skip 7 days
-            const waitingPeriod = 7 * 24 * 60 * 60;
-            await ethers.provider.send('evm_increaseTime', [waitingPeriod]);
-            await ethers.provider.send('evm_mine');
+            // skip 30 days
+            const waitingPeriod = 30 * 24 * 60 * 60;
+            moveTime(waitingPeriod)
 
             await expect(stakingVault.connect(user2).claim(tokenIds)).to.be.revertedWithCustomError(stakingVault, "NFTStakingVault__NotItemOwner")
         });
@@ -244,17 +269,16 @@ describe("NFTStakingVault.sol", () => {
             const totalCost = getAmountFromWei(mintCost) * 3
             await nftContract.connect(user1).mint(3, { value: getAmountInWei(totalCost) })
 
-            const tokenIds = [1, 3]
+            const tokenIds = [0, 2]
             for (let i = 0; i < tokenIds.length; i++) {
                 await nftContract.connect(user1).approve(stakingVault.address, tokenIds[i])
             }
 
             await stakingVault.connect(user1).stake(tokenIds)
 
-            // skip 7 days
-            const waitingPeriod = 7 * 24 * 60 * 60;
-            await ethers.provider.send('evm_increaseTime', [waitingPeriod]);
-            await ethers.provider.send('evm_mine');
+            // skip 60 days
+            const waitingPeriod = 60 * 24 * 60 * 60;
+            moveTime(waitingPeriod)
 
             await expect(stakingVault.connect(user2).unstake(tokenIds)).to.be.revertedWithCustomError(stakingVault, "NFTStakingVault__NotItemOwner")
         });
@@ -277,6 +301,7 @@ describe("NFTStakingVault.sol", () => {
         })
 
         it("only owner should be able to change change ERC20 contract controller", async () => {
+
             await expect(tokenContract.connect(randomUser).setController(user1.address, true)).to.be.revertedWith('Ownable: caller is not the owner');
         })
 
