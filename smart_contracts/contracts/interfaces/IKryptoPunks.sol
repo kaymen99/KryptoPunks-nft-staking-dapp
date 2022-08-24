@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.7;
+pragma solidity 0.8.7;
 
 interface IKryptoPunks {
     function balanceOf(address owner) external view returns (uint256 balance);
@@ -42,17 +42,10 @@ interface IKryptoPunks {
 
     function mint(uint256 _mintAmount) external;
 
-    function walletOfOwner(address _owner)
+    function tokensOfOwner(address _owner)
         external
         view
         returns (uint256[] memory);
 
     function totalSupply() external view returns (uint256);
-
-    function tokenOfOwnerByIndex(address owner, uint256 index)
-        external
-        view
-        returns (uint256);
-
-    function tokenByIndex(uint256 index) external view returns (uint256);
 }
