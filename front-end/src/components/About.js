@@ -9,7 +9,7 @@ function About() {
                         <div className="text-center">
                             <h1 className="about-title">who are the KryptoPunks?</h1>
                             <p className="lead text-center">
-                                A KryptoPunk is a character that is part of an 10000 algorithmically generated collection consisting of extremely unique features ranging from faces, eyes, mouths, skins, hats, and backgrounds.
+                                The KryptoPunks are an art collection for an NFT staking project built within the Polygon network, a KryptoPunk is a character that is part of an 10000 algorithmically generated collection consisting of extremely unique features. Each item can be staked on the KryptoPunk vault to receive KryptoPunk Token (KPT) rewards.
                             </p>
                         </div>
                     </div>
