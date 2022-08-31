@@ -51,8 +51,9 @@ contract NFTStakingVault is Ownable, IERC721Receiver {
     function stake(uint256[] calldata tokenIds) external {
         uint256 tokenId;
         uint256 stakedCount;
-
-        for (uint256 i; i < tokenIds.length; ) {
+        
+        uint256 len = tokenIds.length;
+        for (uint256 i; i < len; ) {
             tokenId = tokenIds[i];
             if (vault[tokenId].owner != address(0)) {
                 revert NFTStakingVault__ItemAlreadyStaked();
@@ -91,8 +92,9 @@ contract NFTStakingVault is Ownable, IERC721Receiver {
         uint256 tokenId;
         uint256 calculatedReward;
         uint256 rewardEarned;
-
-        for (uint256 i; i < tokenIds.length; ) {
+        
+        uint256 len = tokenIds.length;
+        for (uint256 i; i < len; ) {
             tokenId = tokenIds[i];
             if (vault[tokenId].owner != user) {
                 revert NFTStakingVault__NotItemOwner();
@@ -128,8 +130,9 @@ contract NFTStakingVault is Ownable, IERC721Receiver {
     function _unstake(address user, uint256[] calldata tokenIds) internal {
         uint256 tokenId;
         uint256 unstakedCount;
-
-        for (uint256 i; i < tokenIds.length; ) {
+        
+        uint256 len = tokenIds.length;
+        for (uint256 i; i < len; ) {
             tokenId = tokenIds[i];
             require(vault[tokenId].owner == user, "Not Owner");
 
@@ -182,20 +185,21 @@ contract NFTStakingVault is Ownable, IERC721Receiver {
     {
         uint256 calculatedReward;
         uint256[] memory tokens = tokensOfOwner(user);
-        if (tokens.length != 0) {
-            for (uint256 i; i < tokens.length; ) {
-                uint256 _stakedAt = vault[tokens[i]].stakedAt;
-                uint256 stakingPeriod = block.timestamp - _stakedAt;
-                uint256 _dailyReward = _calculateReward(stakingPeriod);
-                calculatedReward +=
-                    (100 * _dailyReward * stakingPeriod * 1e18) /
-                    1 days;
-                unchecked {
-                    ++i;
-                }
+        
+        uint256 len = tokens.length;
+        for (uint256 i; i < len; ) {
+            uint256 _stakedAt = vault[tokens[i]].stakedAt;
+            uint256 stakingPeriod = block.timestamp - _stakedAt;
+            uint256 _dailyReward = _calculateReward(stakingPeriod);
+            calculatedReward +=
+                (100 * _dailyReward * stakingPeriod * 1e18) /
+                1 days;
+            unchecked {
+                ++i;
             }
-            rewardEarned = calculatedReward / 100;
         }
+        rewardEarned = calculatedReward / 100;
+        
     }
 
     function getRewardEarnedPerNft(uint256 _tokenId)
