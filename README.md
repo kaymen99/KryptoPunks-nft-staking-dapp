@@ -103,6 +103,12 @@ Please install or have installed the following:
 * [MetaMask](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn) Chrome extension installed in your browser
 * [Ganache](https://trufflesuite.com/ganache/) for local smart contracts deployement and testing.
 
+Clone this repo with the command :
+   ```sh
+   https://github.com/kaymen99/KryptoPunks-nft-staking-dapp.git
+   cd KryptoPunks-nft-staking-dapp
+   ```
+
 ### Contracts
 
 As mentioned before the contracts are developed with the Hardhat framework, before deploying them you must first install the required dependancies by running :
