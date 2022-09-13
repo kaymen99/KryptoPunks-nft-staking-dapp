@@ -105,7 +105,7 @@ Please install or have installed the following:
 
 Clone this repo with the command :
    ```sh
-   https://github.com/kaymen99/KryptoPunks-nft-staking-dapp.git
+   git clone https://github.com/kaymen99/KryptoPunks-nft-staking-dapp.git
    cd KryptoPunks-nft-staking-dapp
    ```
 
