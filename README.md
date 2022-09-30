@@ -144,7 +144,7 @@ This will create a config.js file and an artifacts folder and transfer them to t
     }
    ```
 
-If you want to test the contracts or the staking process, you can do it by running:
+If you want to test the vault/NFT contracts or the staking process, you can do it by running:
    ```sh
    yarn test
    ```
