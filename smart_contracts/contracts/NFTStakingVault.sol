@@ -14,8 +14,8 @@ contract NFTStakingVault is Ownable, IERC721Receiver {
     uint256 public totalItemsStaked;
     uint256 private constant MONTH = 30 days;
 
-    IKryptoPunks nft;
-    IKryptoPunksToken token;
+    IKryptoPunks immutable nft;
+    IKryptoPunksToken immutable token;
 
     struct Stake {
         address owner;
