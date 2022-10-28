@@ -16,7 +16,7 @@ contract KryptoPunks is ERC721AQueryable, Ownable {
     string public constant baseExtension = ".json";
 
     uint256 public cost;
-    uint256 public maxSupply;
+    uint256 public immutable maxSupply;
     uint256 public maxMintAmountPerTx;
 
     // USE uint256 instead of bool to save gas
