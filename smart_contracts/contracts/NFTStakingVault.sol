@@ -116,10 +116,9 @@ contract NFTStakingVault is Ownable, IERC721Receiver {
 
         rewardEarned = calculatedReward / 100;
 
-        emit Claimed(user, rewardEarned);
-
         if (rewardEarned != 0) {
             token.mint(user, rewardEarned);
+            emit Claimed(user, rewardEarned);
         }
 
         if (unstakeAll) {
