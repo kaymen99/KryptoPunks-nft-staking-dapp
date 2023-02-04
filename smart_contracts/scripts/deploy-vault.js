@@ -46,6 +46,7 @@ async function main() {
 
   /* transfer contracts addresses & ABIs to the front-end */
   if (fs.existsSync("../front-end/src")) {
+    fs.rmSync("../src/artifacts", { recursive: true, force: true });
     fse.copySync("./artifacts/contracts", "../front-end/src/artifacts")
     fs.writeFileSync("../front-end/src/utils/contracts-config.js", `
       export const stakingContractAddress = "${stakingVault.address}"
