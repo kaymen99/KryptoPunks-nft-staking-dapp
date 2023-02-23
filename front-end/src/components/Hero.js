@@ -15,7 +15,7 @@ function Hero() {
                             Mint Now
                         </button>
                     </a>
-                    <a href="https://github.com/Aymen1001/NFT-Staking-dapp.git" target="_blank"
+                    <a href="https://github.com/kaymen99/KryptoPunks-nft-staking-dapp.git" target="_blank"
                         rel="noreferrer">
                         <button className="btn btn-info">
                             Github
