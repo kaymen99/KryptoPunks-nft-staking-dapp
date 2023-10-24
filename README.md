@@ -4,7 +4,7 @@
 
 # KryptoPunks NFT Staking Dapp
 
-This is a modern NFT project, the dapp allows users to mint their KryptoPunks items and stake them to receive staking rewards in the form of KryptoPunkToken (KPT).
+This is a modern NFT project, the dapp allows users to mint their KryptoPunks NFT and stake them to receive staking rewards in the form of our own ERC20 token named  KryptoPunkToken (KPT).
 
 <p align="center">
   <img alt="Dark" src="https://user-images.githubusercontent.com/83681204/185254772-40163a1d-3481-4519-b936-b5093c71e097.png" width="100%">
@@ -120,13 +120,12 @@ As mentioned before the contracts are developed with the Hardhat framework, befo
 Next you need to setup the environement variables in the .env file, this are used when deploying the contracts :
 
    ```sh
-    RINKEBY_ETHERSCAN_API_KEY="your etherscan api key"
-    RINKEBY_RPC_URL="Your rinkeby RPC url from alchemy or infura"
+    POLYGONSCAN_API_KEY = 'your polygonscan api key'
     POLYGON_RPC_URL="Your polygon RPC url from alchemy or infura"
     MUMBAI_RPC_URL="Your mumbai RPC url from alchemy or infura"
     PRIVATE_KEY="your private key"
    ```
-* <b>NOTE :</b> Only the private key is needed when deploying to the ganache network, the others variables are for deploying to the testnets or real networks and etherscan api key is for verifying your contracts on rinkeby etherscan.
+* <b>NOTE :</b> Only the private key is needed when deploying to the ganache network, the others variables are for deploying to the testnets or real networks and etherscan api key is for verifying your contracts on polygon etherscan.
 
 After going through all the configuration step, you'll need to deploy the 3 contracts to the ganache network by running: 
    ```sh
@@ -134,13 +133,13 @@ After going through all the configuration step, you'll need to deploy the 3 cont
    ```
 This will create a config.js file and an artifacts folder and transfer them to the src folder to enable the interaction between the contract and the UI
 
-* <b>IMPORTANT :</b> I used the ganache network for development purposes only, you can choose another testnet or real network if you want, for that you need to add it to the hardhat.config file for example for the rinkeby testnet  
+* <b>IMPORTANT :</b> I used the ganache network for development purposes only, you can choose another testnet or real network if you want, for that you need to add it to the hardhat.config file for example for the mumbai testnet: 
 
    ```sh
-   rinkeby: {
-      url: RINKEBY_RPC_URL,
+   mumbai: {
+      url: MUMBAI_RPC_URL,
       accounts: [process.env.PRIVATE_KEY],
-      chainId: 4,
+      chainId: 80001,
     }
    ```
 
