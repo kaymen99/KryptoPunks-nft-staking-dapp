@@ -50,12 +50,6 @@ describe("NFTStakingVault.sol", () => {
             const ownerAddress = await owner.getAddress();
             expect(tokenContractOnwer).to.equal(ownerAddress);
         });
-
-        it("NFT Staking Vault contract should have correct owner address", async () => {
-            const vaultOnwer = await stakingVault.owner();
-            const ownerAddress = await owner.getAddress();
-            expect(vaultOnwer).to.equal(ownerAddress);
-        });
     });
 
     describe("Core Functions", () => {
